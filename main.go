@@ -98,6 +98,13 @@ func (m *Model) MoveToNext() tea.Msg {
 	return nil
 }
 
+func (m *Model) DeleteCurrent() tea.Msg {
+	selectedItem := m.lists[m.focused].SelectedItem()
+	selectedTask := selectedItem.(Task)
+	m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
+	return nil
+}
+
 func (m *Model) Next() {
 	if m.focused == done {
 		m.focused = todo
@@ -168,6 +175,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			models[model] = m // save the state of the current model
 			models[form] = NewForm(m.focused)
 			return models[form].Update(nil)
+		case "d":
+			return m, m.DeleteCurrent
 		}
 	case Task:
 		task := msg
