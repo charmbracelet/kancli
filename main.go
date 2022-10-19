@@ -99,6 +99,9 @@ func (m *Model) MoveToNext() tea.Msg {
 }
 
 func (m *Model) DeleteCurrent() tea.Msg {
+	if len(m.lists[m.focused].VisibleItems()) == 0 {
+		return nil
+	}
 	selectedItem := m.lists[m.focused].SelectedItem()
 	selectedTask := selectedItem.(Task)
 	m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
