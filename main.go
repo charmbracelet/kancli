@@ -99,12 +99,10 @@ func (m *Model) MoveToNext() tea.Msg {
 }
 
 func (m *Model) DeleteCurrent() tea.Msg {
-	if len(m.lists[m.focused].VisibleItems()) == 0 {
-		return nil
+	if len(m.lists[m.focused].VisibleItems()) > 0 {
+		selectedTask := m.lists[m.focused].SelectedItem().(Task)
+		m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
 	}
-	selectedItem := m.lists[m.focused].SelectedItem()
-	selectedTask := selectedItem.(Task)
-	m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
 	return nil
 }
 
@@ -139,12 +137,12 @@ func (m *Model) initLists(width, height int) {
 	// Init in progress
 	m.lists[inProgress].Title = "In Progress"
 	m.lists[inProgress].SetItems([]list.Item{
-		Task{status: todo, title: "write code", description: "don't worry, it's Go"},
+		Task{status: inProgress, title: "write code", description: "don't worry, it's Go"},
 	})
 	// Init done
 	m.lists[done].Title = "Done"
 	m.lists[done].SetItems([]list.Item{
-		Task{status: todo, title: "stay cool", description: "as a cucumber"},
+		Task{status: done, title: "stay cool", description: "as a cucumber"},
 	})
 }
 
