@@ -1,6 +1,6 @@
 # Kancli
 
-Welcome to our demo repo for a kanban board for the command line. 
+Welcome to our demo repo for a kanban board for the command line.
 
 There is a video to go along with this repo on our [YouTube
 channel](https://youtube.com/c/charmcli) if you would like a full walk through
@@ -11,8 +11,8 @@ tutorial on the topic.
 We'd love to hear your thoughts on this tutorial. Feel free to drop us a note!
 
 * [Twitter](https://twitter.com/charmcli)
-* [The Fediverse](https://mastodon.technology/@charm)
-* [Slack](https://charm.sh/slack)
+* [The Fediverse](https://mastodon.social/@charmcli)
+* [Discord](https://charm.sh/chat)
 
 ## License
 
