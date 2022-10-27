@@ -98,6 +98,14 @@ func (m *Model) MoveToNext() tea.Msg {
 	return nil
 }
 
+func (m *Model) DeleteCurrent() tea.Msg {
+	if len(m.lists[m.focused].VisibleItems()) > 0 {
+		selectedTask := m.lists[m.focused].SelectedItem().(Task)
+		m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
+	}
+	return nil
+}
+
 func (m *Model) Next() {
 	if m.focused == done {
 		m.focused = todo
@@ -129,12 +137,12 @@ func (m *Model) initLists(width, height int) {
 	// Init in progress
 	m.lists[inProgress].Title = "In Progress"
 	m.lists[inProgress].SetItems([]list.Item{
-		Task{status: todo, title: "write code", description: "don't worry, it's Go"},
+		Task{status: inProgress, title: "write code", description: "don't worry, it's Go"},
 	})
 	// Init done
 	m.lists[done].Title = "Done"
 	m.lists[done].SetItems([]list.Item{
-		Task{status: todo, title: "stay cool", description: "as a cucumber"},
+		Task{status: done, title: "stay cool", description: "as a cucumber"},
 	})
 }
 
@@ -168,6 +176,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			models[model] = m // save the state of the current model
 			models[form] = NewForm(m.focused)
 			return models[form].Update(nil)
+		case "d":
+			return m, m.DeleteCurrent
 		}
 	case Task:
 		task := msg
