@@ -91,10 +91,12 @@ func New() *Model {
 
 func (m *Model) MoveToNext() tea.Msg {
 	selectedItem := m.lists[m.focused].SelectedItem()
-	selectedTask := selectedItem.(Task)
-	m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
-	selectedTask.Next()
-	m.lists[selectedTask.status].InsertItem(len(m.lists[selectedTask.status].Items())-1, list.Item(selectedTask))
+	if selectedItem != nil {
+		selectedTask := selectedItem.(Task)
+		m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
+		selectedTask.Next()
+		m.lists[selectedTask.status].InsertItem(len(m.lists[selectedTask.status].Items())-1, list.Item(selectedTask))
+	}
 	return nil
 }
 
