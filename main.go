@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"log"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
@@ -38,8 +37,6 @@ var (
 			Padding(1, 2).
 			Border(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("62"))
-	helpStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("241"))
 )
 
 /* CUSTOM ITEM */
@@ -81,16 +78,14 @@ type Model struct {
 	loaded   bool
 	focused  status
 	lists    []list.Model
-	err      error
 	quitting bool
-}
-
-func New() *Model {
-	return &Model{}
 }
 
 func (m *Model) MoveToNext() tea.Msg {
 	selectedItem := m.lists[m.focused].SelectedItem()
+	if selectedItem == nil { // will happen if board is empty
+		return nil
+	}
 	selectedTask := selectedItem.(Task)
 	m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
 	selectedTask.Next()
@@ -232,16 +227,17 @@ type Form struct {
 }
 
 func NewForm(focused status) *Form {
-	form := &Form{focused: focused}
+	form := Form{focused: focused}
 	form.title = textinput.New()
 	form.title.Focus()
 	form.description = textarea.New()
-	return form
+	return &form
 }
 
 func (m Form) CreateTask() tea.Msg {
-	task := NewTask(m.focused, m.title.Value(), m.description.Value())
-	return task
+	return Task{
+		m.focused, m.title.Value(), m.description.Value(),
+	}
 }
 
 func (m Form) Init() tea.Cmd {
@@ -280,11 +276,10 @@ func (m Form) View() string {
 }
 
 func main() {
-	models = []tea.Model{New(), NewForm(todo)}
+	models = []tea.Model{&Model{}, NewForm(todo)}
 	m := models[model]
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
