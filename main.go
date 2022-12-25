@@ -24,7 +24,7 @@ const (
 var models []tea.Model
 
 const (
-	model status = iota
+	board status = iota
 	form
 )
 
@@ -83,12 +83,13 @@ type Model struct {
 
 func (m *Model) MoveToNext() tea.Msg {
 	selectedItem := m.lists[m.focused].SelectedItem()
-	if selectedItem != nil {
-		selectedTask := selectedItem.(Task)
-		m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
-		selectedTask.Next()
-		m.lists[selectedTask.status].InsertItem(len(m.lists[selectedTask.status].Items())-1, list.Item(selectedTask))
+	if selectedItem == nil { // will happen if board is empty
+		return nil
 	}
+	selectedTask := selectedItem.(Task)
+	m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
+	selectedTask.Next()
+	m.lists[selectedTask.status].InsertItem(len(m.lists[selectedTask.status].Items())-1, list.Item(selectedTask))
 	return nil
 }
 
@@ -116,11 +117,10 @@ func (m *Model) Prev() {
 	}
 }
 
-func (m *Model) initLists(width, height int) {
-	defaultList := list.New([]list.Item{}, list.NewDefaultDelegate(), width/divisor, height/2)
+func (m *Model) initLists() {
+	defaultList := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	defaultList.SetShowHelp(false)
 	m.lists = []list.Model{defaultList, defaultList, defaultList}
-
 	// Init To Do
 	m.lists[todo].Title = "To Do"
 	m.lists[todo].SetItems([]list.Item{
@@ -147,14 +147,15 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		if !m.loaded {
-			columnStyle.Width(msg.Width / divisor)
-			focusedStyle.Width(msg.Width / divisor)
-			columnStyle.Height(msg.Height - divisor)
-			focusedStyle.Height(msg.Height - divisor)
-			m.initLists(msg.Width, msg.Height)
-			m.loaded = true
+		columnStyle.Width(msg.Width / divisor)
+		focusedStyle.Width(msg.Width / divisor)
+		columnStyle.Height(msg.Height - divisor)
+		focusedStyle.Height(msg.Height - divisor)
+		for i, list := range m.lists {
+			list.SetSize(msg.Width/divisor, msg.Height/2)
+			m.lists[i], _ = list.Update(msg)
 		}
+		m.loaded = true
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -167,7 +168,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			return m, m.MoveToNext
 		case "n":
-			models[model] = m // save the state of the current model
+			models[board] = m // save the state of the current model
 			models[form] = NewForm(m.focused)
 			return models[form].Update(nil)
 		case "d":
@@ -257,7 +258,7 @@ func (m Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, textarea.Blink
 			} else {
 				models[form] = m
-				return models[model], m.CreateTask
+				return models[board], m.CreateTask
 			}
 		}
 	}
@@ -275,8 +276,10 @@ func (m Form) View() string {
 }
 
 func main() {
-	models = []tea.Model{&Model{}, NewForm(todo)}
-	m := models[model]
+	boardView := Model{}
+	boardView.initLists()
+	models = []tea.Model{&boardView, NewForm(todo)}
+	m := models[board]
 	p := tea.NewProgram(m)
 	if err := p.Start(); err != nil {
 		log.Fatal(err)
