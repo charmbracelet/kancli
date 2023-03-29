@@ -83,13 +83,12 @@ type Model struct {
 
 func (m *Model) MoveToNext() tea.Msg {
 	selectedItem := m.lists[m.focused].SelectedItem()
-	if selectedItem == nil { // will happen if board is empty
-		return nil
+	if selectedItem != nil {
+		selectedTask := selectedItem.(Task)
+		m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
+		selectedTask.Next()
+		m.lists[selectedTask.status].InsertItem(len(m.lists[selectedTask.status].Items())-1, list.Item(selectedTask))
 	}
-	selectedTask := selectedItem.(Task)
-	m.lists[selectedTask.status].RemoveItem(m.lists[m.focused].Index())
-	selectedTask.Next()
-	m.lists[selectedTask.status].InsertItem(len(m.lists[selectedTask.status].Items())-1, list.Item(selectedTask))
 	return nil
 }
 
