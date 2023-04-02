@@ -80,9 +80,9 @@ func (t Task) Description() string {
 /* MAIN MODEL */
 
 type Model struct {
-	loaded   bool
-	focused  status
-	lists    []list.Model
+	loaded       bool
+	focused      status
+	lists        []list.Model
 	quitting     bool
 	editingIndex int
 }
