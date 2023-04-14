@@ -192,7 +192,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			editForm.title.SetValue(task.title)
 			editForm.description.SetValue(task.description)
 			m.editingIndex = list.Index()
-			models[model] = m // save the state of the current model
+			models[board] = m // save the state of the current model
 			models[form] = editForm
 			return models[form].Update(nil)
 		case "d":
