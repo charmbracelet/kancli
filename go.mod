@@ -1,4 +1,4 @@
-module kancli-demo
+module kancli
 
 go 1.19
 
