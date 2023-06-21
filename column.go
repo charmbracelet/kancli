@@ -21,6 +21,10 @@ func (c *column) Focus() {
 	c.focus = true
 }
 
+func (c *column) Blur() {
+	c.focus = false
+}
+
 func (c *column) Focused() bool {
 	return c.focus
 }

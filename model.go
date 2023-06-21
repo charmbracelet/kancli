@@ -42,9 +42,13 @@ func (m Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		case key.Matches(msg, keys.Left):
+			m.cols[m.focused].Blur()
 			m.focused = m.focused.getPrev()
+			m.cols[m.focused].Focus()
 		case key.Matches(msg, keys.Right):
+			m.cols[m.focused].Blur()
 			m.focused = m.focused.getNext()
+			m.cols[m.focused].Focus()
 		}
 	}
 	res, cmd := m.cols[m.focused].Update(msg)
