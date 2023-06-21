@@ -11,59 +11,71 @@ import (
 
 type Form struct {
 	help        help.Model
-	focused     status
 	title       textinput.Model
 	description textarea.Model
+	col         column
+	index       int
 }
 
-func NewForm(focused status) *Form {
+func newDefaultForm() *Form {
+	return NewForm("task name", "")
+}
+
+func NewForm(title, description string) *Form {
 	form := Form{
 		help:        help.New(),
-		focused:     focused,
 		title:       textinput.New(),
 		description: textarea.New(),
 	}
-
+	form.title.Placeholder = title
+	form.description.Placeholder = description
 	form.title.Focus()
 	return &form
 }
 
-func (m Form) CreateTask() tea.Msg {
-	return Task{
-		m.focused, m.title.Value(), m.description.Value(),
-	}
+func (f Form) CreateTask() Task {
+	return Task{f.col.status, f.title.Value(), f.description.Value()}
 }
 
-func (m Form) Init() tea.Cmd {
+func (f Form) Init() tea.Cmd {
 	return nil
 }
 
-func (m Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+	case column:
+		f.col = msg
+		f.col.list.Index()
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Quit):
-			return m, tea.Quit
+			return f, tea.Quit
 		case key.Matches(msg, keys.Enter):
-			if m.title.Focused() {
-				m.title.Blur()
-				m.description.Focus()
-				return m, textarea.Blink
-			} else {
-				models[form] = m
-				return models[board], m.CreateTask
+			if f.title.Focused() {
+				f.title.Blur()
+				f.description.Focus()
+				return f, textarea.Blink
 			}
+			// Return the completed form as a message.
+			return f.col.Update(f)
 		}
 	}
-	if m.title.Focused() {
-		m.title, cmd = m.title.Update(msg)
-		return m, cmd
+	if f.title.Focused() {
+		f.title, cmd = f.title.Update(msg)
+		return f, cmd
 	}
-	m.description, cmd = m.description.Update(msg)
-	return m, cmd
+	f.description, cmd = f.description.Update(msg)
+	return f, cmd
 }
 
-func (m Form) View() string {
-	return lipgloss.JoinVertical(lipgloss.Left, m.title.View(), m.description.View(), m.help.View(keys))
+func (f Form) View() string {
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		"Create a new task",
+		f.title.View(),
+		f.description.View(),
+		f.help.View(keys))
 }
+
+// TODO: add help showing by default
