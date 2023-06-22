@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -36,7 +38,7 @@ func newColumn(status status) column {
 	}
 	defaultList := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
 	defaultList.SetShowHelp(false)
-	return column{focus, status, defaultList, 0, 0}
+	return column{focus: focus, status: status, list: defaultList}
 }
 
 // Init does initial setup for the column.
@@ -46,13 +48,12 @@ func (c column) Init() tea.Cmd {
 
 // Update handles all the I/O for columns.
 func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// TODO: make list refresh when new value is added
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		c.setSize(msg.Width, msg.Height)
 		c.list.SetSize(msg.Width/divisor, msg.Height/2)
-	case Form:
-		return c, c.Set(msg.index, msg.CreateTask())
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Edit):
@@ -90,12 +91,10 @@ func (c *column) DeleteCurrent() tea.Msg {
 }
 
 func (c *column) Set(i int, t Task) tea.Cmd {
-	return func() tea.Msg {
-		if i != APPEND {
-			c.list.SetItem(i, t)
-		}
-		return c.list.InsertItem(APPEND, t)
+	if i != APPEND {
+		c.list.SetItem(i, t)
 	}
+	return c.list.InsertItem(APPEND, t)
 }
 
 func (c *column) setSize(width, height int) {
@@ -120,9 +119,21 @@ func (c *column) getStyle() lipgloss.Style {
 		Width(c.width)
 }
 
+type moveMsg struct {
+	Task
+}
+
 func (c *column) MoveToNext() tea.Msg {
-	task := c.list.SelectedItem().(Task)
+	// TODO: need to update lists after removing the item
+	var task Task
+	var ok bool
+	if task, ok = c.list.SelectedItem().(Task); !ok {
+		return nil
+	}
+	// TODO: remove this
+	log.Println(c.list.Index())
 	c.list.RemoveItem(c.list.Index())
+	log.Print(c.list.Items())
 	task.status = c.status.getNext()
-	return task
+	return moveMsg{task}
 }

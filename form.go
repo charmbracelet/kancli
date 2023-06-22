@@ -51,6 +51,9 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.Quit):
 			return f, tea.Quit
+
+		case key.Matches(msg, keys.Back):
+			return board.Update(nil)
 		case key.Matches(msg, keys.Enter):
 			if f.title.Focused() {
 				f.title.Blur()
@@ -58,7 +61,8 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return f, textarea.Blink
 			}
 			// Return the completed form as a message.
-			return f.col.Update(f)
+			// TODO: fix this :(
+			return board.Update(f)
 		}
 	}
 	if f.title.Focused() {

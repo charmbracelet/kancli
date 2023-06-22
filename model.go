@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,21 +23,32 @@ func NewBoard() *Board {
 	return &Board{help: help, focused: todo}
 }
 
-func (m Board) Init() tea.Cmd {
+func (m *Board) Init() tea.Cmd {
 	return nil
 }
 
-func (m Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+type refreshMsg struct{}
+
+func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		var cmd tea.Cmd
+		var cmds []tea.Cmd
 		for i := 0; i < len(m.cols); i++ {
 			var res tea.Model
 			res, cmd = m.cols[i].Update(msg)
 			m.cols[i] = res.(column)
+			cmds = append(cmds, cmd)
 		}
 		m.loaded = true
-		return m, cmd
+		return m, tea.Batch(cmds...)
+	case Form:
+		log.Print("got form")
+		return m, m.cols[m.focused].Set(msg.index, msg.CreateTask())
+	case moveMsg:
+		return m, tea.Sequence(
+			m.cols[m.focused.getNext()].Set(APPEND, msg.Task),
+			func() tea.Msg { return refreshMsg{} })
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Quit):
@@ -60,7 +73,8 @@ func (m Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m Board) View() string {
+// TODO: changing to pointer receiver to get back to this model after adding a newtask via the form... otherwise I would need to pass this model along to the form and it becomes highly coupled to the other views?
+func (m *Board) View() string {
 	if m.quitting {
 		return ""
 	}

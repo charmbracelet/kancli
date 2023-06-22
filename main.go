@@ -1,12 +1,11 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
-
-// TODO: fix adding an item to list
 
 type status int
 
@@ -26,6 +25,8 @@ func (s status) getPrev() status {
 
 const divisor = 4
 
+var board *Board
+
 const (
 	todo status = iota
 	inProgress
@@ -33,10 +34,18 @@ const (
 )
 
 func main() {
-	board := NewBoard()
+	f, err := tea.LogToFile("debug.log", "debug")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer f.Close()
+
+	board = NewBoard()
 	board.initLists()
 	p := tea.NewProgram(board)
 	if _, err := p.Run(); err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
