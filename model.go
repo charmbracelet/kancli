@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -43,7 +41,6 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.loaded = true
 		return m, tea.Batch(cmds...)
 	case Form:
-		log.Print("got form")
 		return m, m.cols[m.focused].Set(msg.index, msg.CreateTask())
 	case moveMsg:
 		return m, tea.Sequence(
