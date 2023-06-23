@@ -46,7 +46,6 @@ func (c column) Init() tea.Cmd {
 
 // Update handles all the I/O for columns.
 func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// TODO: make list refresh when new value is added
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:

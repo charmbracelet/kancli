@@ -61,7 +61,6 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return f, textarea.Blink
 			}
 			// Return the completed form as a message.
-			// TODO: fix this :(
 			return board.Update(f)
 		}
 	}

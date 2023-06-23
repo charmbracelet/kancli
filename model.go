@@ -70,7 +70,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-// TODO: changing to pointer receiver to get back to this model after adding a newtask via the form... otherwise I would need to pass this model along to the form and it becomes highly coupled to the other views?
+// Changing to pointer receiver to get back to this model after adding a new task via the form... Otherwise I would need to pass this model along to the form and it becomes highly coupled to the other models.
 func (m *Board) View() string {
 	if m.quitting {
 		return ""
