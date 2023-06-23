@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -72,7 +70,7 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Delete):
 			return c, c.DeleteCurrent
 		case key.Matches(msg, keys.Enter):
-			return c, c.MoveToNext
+			return c, c.MoveToNext()
 		}
 	}
 	c.list, cmd = c.list.Update(msg)
@@ -123,17 +121,20 @@ type moveMsg struct {
 	Task
 }
 
-func (c *column) MoveToNext() tea.Msg {
-	// TODO: need to update lists after removing the item
+func (c *column) MoveToNext() tea.Cmd {
 	var task Task
 	var ok bool
+	// If nothing is selected, the SelectedItem will return Nil.
 	if task, ok = c.list.SelectedItem().(Task); !ok {
 		return nil
 	}
-	// TODO: remove this
-	log.Println(c.list.Index())
+	// move item
 	c.list.RemoveItem(c.list.Index())
-	log.Print(c.list.Items())
 	task.status = c.status.getNext()
-	return moveMsg{task}
+
+	// refresh list
+	var cmd tea.Cmd
+	c.list, cmd = c.list.Update(nil)
+
+	return tea.Sequence(cmd, func() tea.Msg { return moveMsg{task} })
 }
