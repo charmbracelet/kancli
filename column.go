@@ -68,7 +68,7 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			f.col = c
 			return f.Update(nil)
 		case key.Matches(msg, keys.Delete):
-			return c, c.DeleteCurrent
+			return c, c.DeleteCurrent()
 		case key.Matches(msg, keys.Enter):
 			return c, c.MoveToNext()
 		}
@@ -81,11 +81,14 @@ func (c column) View() string {
 	return c.getStyle().Render(c.list.View())
 }
 
-func (c *column) DeleteCurrent() tea.Msg {
+func (c *column) DeleteCurrent() tea.Cmd {
 	if len(c.list.VisibleItems()) > 0 {
 		c.list.RemoveItem(c.list.Index())
 	}
-	return nil
+
+	var cmd tea.Cmd
+	c.list, cmd = c.list.Update(nil)
+	return cmd
 }
 
 func (c *column) Set(i int, t Task) tea.Cmd {
