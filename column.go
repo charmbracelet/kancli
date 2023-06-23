@@ -96,9 +96,7 @@ func (c *column) Set(i int, t Task) tea.Cmd {
 }
 
 func (c *column) setSize(width, height int) {
-	// TODO: make height of col depend on num items in list?
-	c.height = height / divisor
-	c.width = height / width
+	c.width = width / divisor
 }
 
 func (c *column) getStyle() lipgloss.Style {
