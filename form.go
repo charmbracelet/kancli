@@ -80,5 +80,3 @@ func (f Form) View() string {
 		f.description.View(),
 		f.help.View(keys))
 }
-
-// TODO: add help showing by default
