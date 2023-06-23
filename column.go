@@ -50,7 +50,7 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		c.setSize(msg.Width, msg.Height)
-		c.list.SetSize(msg.Width/divisor, msg.Height/2)
+		c.list.SetSize(msg.Width/margin, msg.Height/2)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Edit):
@@ -98,7 +98,7 @@ func (c *column) Set(i int, t Task) tea.Cmd {
 }
 
 func (c *column) setSize(width, height int) {
-	c.width = width / divisor
+	c.width = width / margin
 }
 
 func (c *column) getStyle() lipgloss.Style {

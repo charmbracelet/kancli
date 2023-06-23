@@ -23,7 +23,7 @@ func (s status) getPrev() status {
 	return s - 1
 }
 
-const divisor = 4
+const margin = 4
 
 var board *Board
 
