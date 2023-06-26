@@ -25,8 +25,6 @@ func (m *Board) Init() tea.Cmd {
 	return nil
 }
 
-type refreshMsg struct{}
-
 func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -44,9 +42,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case Form:
 		return m, m.cols[m.focused].Set(msg.index, msg.CreateTask())
 	case moveMsg:
-		return m, tea.Sequence(
-			m.cols[m.focused.getNext()].Set(APPEND, msg.Task),
-			func() tea.Msg { return refreshMsg{} })
+		return m, m.cols[m.focused.getNext()].Set(APPEND, msg.Task)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Quit):
