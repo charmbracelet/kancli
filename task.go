@@ -1,4 +1,4 @@
-package main
+package kancli
 
 type Task struct {
 	status      status
@@ -8,14 +8,6 @@ type Task struct {
 
 func NewTask(status status, title, description string) Task {
 	return Task{status: status, title: title, description: description}
-}
-
-func (t *Task) Next() {
-	if t.status == done {
-		t.status = todo
-	} else {
-		t.status++
-	}
 }
 
 // implement the list.Item interface

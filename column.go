@@ -1,4 +1,4 @@
-package main
+package kancli
 
 import (
 	"github.com/charmbracelet/bubbles/key"

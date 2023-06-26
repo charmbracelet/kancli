@@ -1,4 +1,4 @@
-package main
+package kancli
 
 import (
 	"github.com/charmbracelet/bubbles/help"
@@ -53,7 +53,7 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f, tea.Quit
 
 		case key.Matches(msg, keys.Back):
-			return board.Update(nil)
+			return f, nil
 		case key.Matches(msg, keys.Enter):
 			if f.title.Focused() {
 				f.title.Blur()
@@ -61,7 +61,7 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return f, textarea.Blink
 			}
 			// Return the completed form as a message.
-			return board.Update(f)
+			return f, nil
 		}
 	}
 	if f.title.Focused() {

@@ -1,4 +1,4 @@
-package main
+package kancli
 
 import (
 	"github.com/charmbracelet/bubbles/help"
@@ -15,10 +15,23 @@ type Board struct {
 	quitting bool
 }
 
-func NewBoard() *Board {
+// NewDefaultBoard creates a new kanban board with To Do, In Progress, and Done
+// columns.
+func NewDefaultBoard(cols []column) *Board {
 	help := help.New()
 	help.ShowAll = true
-	return &Board{help: help, focused: todo}
+	b := &Board{help: help, focused: todo}
+
+	b.cols = []column{
+		newColumn(todo),
+		newColumn(inProgress),
+		newColumn(done),
+	}
+	b.cols[todo].list.Title = "To Do"
+	b.cols[inProgress].list.Title = "In Progress"
+	b.cols[done].list.Title = "Done"
+
+	return b
 }
 
 func (m *Board) Init() tea.Cmd {
