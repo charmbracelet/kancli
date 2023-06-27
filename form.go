@@ -13,7 +13,7 @@ type Form struct {
 	help        help.Model
 	title       textinput.Model
 	description textarea.Model
-	col         column
+	col         Column
 	index       int
 }
 
@@ -33,8 +33,10 @@ func NewForm(title, description string) *Form {
 	return &form
 }
 
-func (f Form) CreateTask() Task {
-	return Task{f.col.status, f.title.Value(), f.description.Value()}
+type CreateTaskMsg struct {
+	Status      Status
+	Title       string
+	Description string
 }
 
 func (f Form) Init() tea.Cmd {
@@ -44,9 +46,9 @@ func (f Form) Init() tea.Cmd {
 func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
-	case column:
+	case Column:
 		f.col = msg
-		f.col.list.Index()
+		f.col.List.Index()
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Quit):

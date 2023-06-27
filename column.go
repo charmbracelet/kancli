@@ -9,55 +9,60 @@ import (
 
 const APPEND = -1
 
-type column struct {
+const margin = 4
+
+type Status interface {
+	Next() int
+	Prev() int
+	String() string
+}
+
+type Column struct {
 	focus  bool
-	status status
-	list   list.Model
+	List   list.Model
+	status Status
 	height int
 	width  int
 }
 
-func (c *column) Focus() {
+func (c *Column) Focus() {
 	c.focus = true
 }
 
-func (c *column) Blur() {
+func (c *Column) Blur() {
 	c.focus = false
 }
 
-func (c *column) Focused() bool {
+func (c *Column) Focused() bool {
 	return c.focus
 }
 
-func newColumn(status status) column {
-	var focus bool
-	if status == todo {
-		focus = true
-	}
-	defaultList := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+// NewColumn creates a new column from a list.
+func NewColumn(l []list.Item, status Status, focus bool) Column {
+	defaultList := list.New(l, list.NewDefaultDelegate(), 0, 0)
 	defaultList.SetShowHelp(false)
-	return column{focus: focus, status: status, list: defaultList}
+	return Column{focus: focus, status: status, List: defaultList}
 }
 
 // Init does initial setup for the column.
-func (c column) Init() tea.Cmd {
+func (c Column) Init() tea.Cmd {
 	return nil
 }
 
 // Update handles all the I/O for columns.
-func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (c Column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		c.setSize(msg.Width, msg.Height)
-		c.list.SetSize(msg.Width/margin, msg.Height/2)
+		c.List.SetSize(msg.Width/margin, msg.Height/2)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Edit):
-			if len(c.list.VisibleItems()) != 0 {
-				task := c.list.SelectedItem().(Task)
-				f := NewForm(task.title, task.description)
-				f.index = c.list.Index()
+			if len(c.List.VisibleItems()) != 0 {
+				item := c.List.SelectedItem().(list.DefaultItem)
+				f := NewForm(item.Title(), item.Description())
+				f.index = c.List.Index()
 				f.col = c
 				return f.Update(nil)
 			}
@@ -72,36 +77,36 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return c, c.MoveToNext()
 		}
 	}
-	c.list, cmd = c.list.Update(msg)
+	c.List, cmd = c.List.Update(msg)
 	return c, cmd
 }
 
-func (c column) View() string {
-	return c.getStyle().Render(c.list.View())
+func (c Column) View() string {
+	return c.getStyle().Render(c.List.View())
 }
 
-func (c *column) DeleteCurrent() tea.Cmd {
-	if len(c.list.VisibleItems()) > 0 {
-		c.list.RemoveItem(c.list.Index())
+func (c *Column) DeleteCurrent() tea.Cmd {
+	if len(c.List.VisibleItems()) > 0 {
+		c.List.RemoveItem(c.List.Index())
 	}
 
 	var cmd tea.Cmd
-	c.list, cmd = c.list.Update(nil)
+	c.List, cmd = c.List.Update(nil)
 	return cmd
 }
 
-func (c *column) Set(i int, t Task) tea.Cmd {
+func (c *Column) Set(i int, item list.Item) tea.Cmd {
 	if i != APPEND {
-		return c.list.SetItem(i, t)
+		return c.List.SetItem(i, item)
 	}
-	return c.list.InsertItem(APPEND, t)
+	return c.List.InsertItem(APPEND, item)
 }
 
-func (c *column) setSize(width, height int) {
+func (c *Column) setSize(width, height int) {
 	c.width = width / margin
 }
 
-func (c *column) getStyle() lipgloss.Style {
+func (c *Column) getStyle() lipgloss.Style {
 	if c.Focused() {
 		return lipgloss.NewStyle().
 			Padding(1, 2).
@@ -117,24 +122,20 @@ func (c *column) getStyle() lipgloss.Style {
 		Width(c.width)
 }
 
-type moveMsg struct {
-	Task
-}
+type MoveMsg int
 
-func (c *column) MoveToNext() tea.Cmd {
-	var task Task
-	var ok bool
+// MoveToNext returns the new column index for the selected item.
+func (c *Column) MoveToNext() tea.Cmd {
 	// If nothing is selected, the SelectedItem will return Nil.
-	if task, ok = c.list.SelectedItem().(Task); !ok {
+	if c.List.SelectedItem() == nil {
 		return nil
 	}
 	// move item
-	c.list.RemoveItem(c.list.Index())
-	task.status = c.status.getNext()
+	c.List.RemoveItem(c.List.Index())
 
 	// refresh list
 	var cmd tea.Cmd
-	c.list, cmd = c.list.Update(nil)
+	c.List, cmd = c.List.Update(nil)
 
-	return tea.Sequence(cmd, func() tea.Msg { return moveMsg{task} })
+	return tea.Sequence(cmd, func() tea.Msg { return c.status.Next() })
 }

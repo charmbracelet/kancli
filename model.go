@@ -10,26 +10,48 @@ import (
 type Board struct {
 	help     help.Model
 	loaded   bool
-	focused  status
-	cols     []column
+	Focused  focus
+	Cols     []Column
 	quitting bool
 }
 
+type focus int
+
+func (f focus) Next() focus {
+	if f == done {
+		return todo
+	}
+	return f + 1
+}
+
+func (f focus) Prev() focus {
+	if f == todo {
+		return done
+	}
+	return f - 1
+}
+
+const (
+	todo focus = iota
+	inProgress
+	done
+)
+
 // NewDefaultBoard creates a new kanban board with To Do, In Progress, and Done
 // columns.
-func NewDefaultBoard(cols []column) *Board {
+func NewDefaultBoard(cols []Column) *Board {
 	help := help.New()
 	help.ShowAll = true
-	b := &Board{help: help, focused: todo}
-
-	b.cols = []column{
-		newColumn(todo),
-		newColumn(inProgress),
-		newColumn(done),
+	b := &Board{Cols: cols, help: help}
+	for i, c := range cols {
+		if c.Focused() {
+			b.Focused = focus(i)
+		}
 	}
-	b.cols[todo].list.Title = "To Do"
-	b.cols[inProgress].list.Title = "In Progress"
-	b.cols[done].list.Title = "Done"
+
+	b.Cols[todo].List.Title = "To Do"
+	b.Cols[inProgress].List.Title = "In Progress"
+	b.Cols[done].List.Title = "Done"
 
 	return b
 }
@@ -44,36 +66,32 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		var cmds []tea.Cmd
 		m.help.Width = msg.Width - margin
-		for i := 0; i < len(m.cols); i++ {
+		for i := 0; i < len(m.Cols); i++ {
 			var res tea.Model
-			res, cmd = m.cols[i].Update(msg)
-			m.cols[i] = res.(column)
+			res, cmd = m.Cols[i].Update(msg)
+			m.Cols[i] = res.(Column)
 			cmds = append(cmds, cmd)
 		}
 		m.loaded = true
 		return m, tea.Batch(cmds...)
-	case Form:
-		return m, m.cols[m.focused].Set(msg.index, msg.CreateTask())
-	case moveMsg:
-		return m, m.cols[m.focused.getNext()].Set(APPEND, msg.Task)
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
 			return m, tea.Quit
 		case key.Matches(msg, keys.Left):
-			m.cols[m.focused].Blur()
-			m.focused = m.focused.getPrev()
-			m.cols[m.focused].Focus()
+			m.Cols[m.Focused].Blur()
+			m.Focused = m.Focused.Prev()
+			m.Cols[m.Focused].Focus()
 		case key.Matches(msg, keys.Right):
-			m.cols[m.focused].Blur()
-			m.focused = m.focused.getNext()
-			m.cols[m.focused].Focus()
+			m.Cols[m.Focused].Blur()
+			m.Focused = m.Focused.Next()
+			m.Cols[m.Focused].Focus()
 		}
 	}
-	res, cmd := m.cols[m.focused].Update(msg)
-	if _, ok := res.(column); ok {
-		m.cols[m.focused] = res.(column)
+	res, cmd := m.Cols[m.Focused].Update(msg)
+	if _, ok := res.(Column); ok {
+		m.Cols[m.Focused] = res.(Column)
 	} else {
 		return res, cmd
 	}
@@ -90,9 +108,9 @@ func (m *Board) View() string {
 	}
 	board := lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		m.cols[todo].View(),
-		m.cols[inProgress].View(),
-		m.cols[done].View(),
+		m.Cols[todo].View(),
+		m.Cols[inProgress].View(),
+		m.Cols[done].View(),
 	)
 	return lipgloss.JoinVertical(lipgloss.Left, board, m.help.View(keys))
 }
