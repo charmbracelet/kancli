@@ -63,7 +63,9 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return f, textarea.Blink
 			}
 			// Return the completed form as a message.
-			return f, nil
+			item := item{f.title.Value(), f.description.Value()}
+			// TODO: make it editable? But then we can't modify the original beyond a title and description...
+			return f.col.board.Update(item)
 		}
 	}
 	if f.title.Focused() {
@@ -81,4 +83,21 @@ func (f Form) View() string {
 		f.title.View(),
 		f.description.View(),
 		f.help.View(keys))
+}
+
+type item struct {
+	title       string
+	description string
+}
+
+func (i item) FilterValue() string {
+	return i.title
+}
+
+func (i item) Title() string {
+	return i.title
+}
+
+func (i item) Description() string {
+	return i.description
 }

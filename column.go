@@ -23,6 +23,7 @@ type Column struct {
 	status Status
 	height int
 	width  int
+	board  *Board
 }
 
 func (c *Column) Focus() {
@@ -53,24 +54,13 @@ func (c Column) Init() tea.Cmd {
 func (c Column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
+	case list.Item:
+		return c, c.Set(APPEND, msg)
 	case tea.WindowSizeMsg:
 		c.setSize(msg.Width, msg.Height)
 		c.List.SetSize(msg.Width/margin, msg.Height/2)
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, keys.Edit):
-			if len(c.List.VisibleItems()) != 0 {
-				item := c.List.SelectedItem().(list.DefaultItem)
-				f := NewForm(item.Title(), item.Description())
-				f.index = c.List.Index()
-				f.col = c
-				return f.Update(nil)
-			}
-		case key.Matches(msg, keys.New):
-			f := newDefaultForm()
-			f.index = APPEND
-			f.col = c
-			return f.Update(nil)
 		case key.Matches(msg, keys.Delete):
 			return c, c.DeleteCurrent()
 		case key.Matches(msg, keys.Enter):
@@ -95,6 +85,7 @@ func (c *Column) DeleteCurrent() tea.Cmd {
 	return cmd
 }
 
+// Set adds an item to a column.
 func (c *Column) Set(i int, item list.Item) tea.Cmd {
 	if i != APPEND {
 		return c.List.SetItem(i, item)
@@ -122,12 +113,17 @@ func (c *Column) getStyle() lipgloss.Style {
 		Width(c.width)
 }
 
-type MoveMsg int
+// MoveMsg can be handled by the lib user to update the status of their items.
+type MoveMsg struct {
+	i    int
+	item list.Item
+}
 
 // MoveToNext returns the new column index for the selected item.
 func (c *Column) MoveToNext() tea.Cmd {
 	// If nothing is selected, the SelectedItem will return Nil.
-	if c.List.SelectedItem() == nil {
+	item := c.List.SelectedItem()
+	if item == nil {
 		return nil
 	}
 	// move item
@@ -137,5 +133,5 @@ func (c *Column) MoveToNext() tea.Cmd {
 	var cmd tea.Cmd
 	c.List, cmd = c.List.Update(nil)
 
-	return tea.Sequence(cmd, func() tea.Msg { return c.status.Next() })
+	return tea.Sequence(cmd, func() tea.Msg { return MoveMsg{c.status.Next(), item} })
 }

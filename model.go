@@ -47,6 +47,7 @@ func NewDefaultBoard(cols []Column) *Board {
 		if c.Focused() {
 			b.Focused = focus(i)
 		}
+		c.board = b
 	}
 
 	b.Cols[todo].List.Title = "To Do"
@@ -61,10 +62,10 @@ func (m *Board) Init() tea.Cmd {
 }
 
 func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		var cmd tea.Cmd
-		var cmds []tea.Cmd
 		m.help.Width = msg.Width - margin
 		for i := 0; i < len(m.Cols); i++ {
 			var res tea.Model
@@ -74,6 +75,8 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.loaded = true
 		return m, tea.Batch(cmds...)
+	case MoveMsg:
+		cmds = append(cmds, m.Cols[msg.i].Set(APPEND, msg.item))
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keys.Quit):
@@ -90,12 +93,14 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	res, cmd := m.Cols[m.Focused].Update(msg)
+	cmds = append(cmds, cmd)
 	if _, ok := res.(Column); ok {
 		m.Cols[m.Focused] = res.(Column)
 	} else {
-		return res, cmd
+		// if it's not a column, switch to the returned model
+		return res, tea.Batch(cmds...)
 	}
-	return m, cmd
+	return m, tea.Batch(cmds...)
 }
 
 // Changing to pointer receiver to get back to this model after adding a new task via the form... Otherwise I would need to pass this model along to the form and it becomes highly coupled to the other models.
