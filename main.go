@@ -23,6 +23,19 @@ func (s status) getPrev() status {
 	return s - 1
 }
 
+func (s status) String() string {
+	switch s {
+	case todo:
+		return "todo"
+	case inProgress:
+		return "inProgress"
+	case done:
+		return "done"
+	default:
+		return "unknown"
+	}
+}
+
 const margin = 4
 
 var board *Board
