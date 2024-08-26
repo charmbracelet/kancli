@@ -47,6 +47,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.Quit):
 			m.quitting = true
+			updateCSV()
 			return m, tea.Quit
 		case key.Matches(msg, keys.Left):
 			m.cols[m.focused].Blur()
