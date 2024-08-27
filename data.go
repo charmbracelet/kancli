@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/csv"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -50,7 +49,7 @@ func (b *Board) initLists() {
 	// Skip the header
 	_, readErr := r.Read()
 	if readErr != nil {
-		fmt.Println("Error reading CSV header:", err)
+		log.Fatal(err)
 	}
 
 	records, readAllErr := r.ReadAll()
@@ -58,7 +57,6 @@ func (b *Board) initLists() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(records)
 	listItems := [][]list.Item{
 		todo:       {},
 		inProgress: {},
