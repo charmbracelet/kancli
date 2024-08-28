@@ -1,11 +1,6 @@
 package main
 
 import (
-	"encoding/csv"
-	"log"
-	"os"
-	"strings"
-
 	"github.com/charmbracelet/bubbles/list"
 )
 
@@ -29,33 +24,7 @@ func (b *Board) initLists() {
 		newColumn(done),
 	}
 
-	if _, err := os.Stat("tasks.csv"); os.IsNotExist(err) {
-		file, err := os.Create("tasks.csv")
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer file.Close()
-		file.WriteString("title,description,status\n")
-	}
-
-	content, err := os.ReadFile("tasks.csv")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	r := csv.NewReader(strings.NewReader(string(content)))
-	r.Comma = ','
-
-	// Skip the header
-	_, readErr := r.Read()
-	if readErr != nil {
-		log.Fatal(err)
-	}
-
-	records, readAllErr := r.ReadAll()
-	if readAllErr != nil {
-		log.Fatal(err)
-	}
+	records := readCSV()
 
 	listItems := [][]list.Item{
 		todo:       {},
@@ -79,21 +48,4 @@ func (b *Board) initLists() {
 
 	b.cols[done].list.Title = "Done"
 	b.cols[done].list.SetItems(listItems[done])
-}
-
-func updateCSV() {
-	file, err := os.Create("tasks.csv")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	file.WriteString("title,description,status\n")
-	w := csv.NewWriter(file)
-	for _, col := range board.cols {
-		for _, item := range col.list.Items() {
-			task := item.(Task)
-			w.Write([]string{task.Title(), task.Description(), task.status.String()})
-		}
-	}
-	w.Flush()
 }

@@ -38,7 +38,10 @@ func (s status) String() string {
 
 const margin = 4
 
-var board *Board
+var (
+	board   *Board
+	csvFile string
+)
 
 const (
 	todo status = iota
@@ -53,6 +56,9 @@ func main() {
 		os.Exit(1)
 	}
 	defer f.Close()
+
+	config := readConfig()
+	csvFile = config.DbPath
 
 	board = NewBoard()
 	board.initLists()
