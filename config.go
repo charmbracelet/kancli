@@ -6,24 +6,35 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 type Config struct {
-	DbPath string
+	DbPath string `json:"dbPath"`
 }
 
-var (
-	configHome = os.Getenv("XDG_CONFIG_HOME")
-	configDir  = configHome + "/kancli"
-	configFile = configDir + "/config.json"
-)
-
 func readConfig() Config {
-	mkdirErr := os.MkdirAll(configDir, 0755)
+	// look for $XDG_CONFIG_HOME/kancli/config.json or $HOME/.config/kancli/config.json
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			// cant find home or config just give up
+			return Config{}
+		}
+		configDir = filepath.Join(homeDir, ".config")
+	}
+
+	// Create ~/.config/kancli/ if it does not exist
+	configPath := filepath.Join(configDir, "kancli")
+
+	mkdirErr := os.MkdirAll(configPath, 0755)
 	if mkdirErr != nil {
 		log.Fatal(mkdirErr)
 	}
+
+	configFile := filepath.Join(configPath, "config.json")
 
 	var config Config
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {

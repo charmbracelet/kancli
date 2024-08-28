@@ -58,6 +58,10 @@ func main() {
 	defer f.Close()
 
 	config := readConfig()
+	if config.DbPath == "" {
+		fmt.Println("No dbPath found in config")
+		os.Exit(1)
+	}
 	csvFile = config.DbPath
 
 	board = NewBoard()
