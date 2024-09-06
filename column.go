@@ -73,6 +73,7 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	c.list, cmd = c.list.Update(msg)
+	updateCSV()
 	return c, cmd
 }
 
