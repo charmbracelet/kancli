@@ -1,11 +1,81 @@
 package main
 
 import (
-	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/key"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/bubbles/v2/help"
+	"github.com/charmbracelet/bubbles/v2/key"
+	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
 )
+
+// TODOs
+// - clean up textinput & area placeholder text (form could use some razzle dazzle) - use huh for this instead?
+// - get accurate help menu options (not showing options properly)
+// - move board to its own file
+
+type Model struct {
+	// false is board, true is form
+	modifying bool
+	board     *Board
+	form      Form
+}
+
+func newModel() Model {
+	return Model{
+		board: NewBoard().initLists(),
+		form:  newDefaultForm(),
+	}
+}
+
+func (m Model) Init() tea.Cmd {
+	return nil
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	switch msg := msg.(type) {
+	case ReturnBoardMsg:
+		m.modifying = false
+	case NewFormMsg:
+		m.modifying = true
+		m.form = newDefaultForm()
+		m.form.index = APPEND
+		m.form.col = msg.column
+	case EditFormMsg:
+		m.modifying = true
+		m.form = NewForm(msg.title, msg.description)
+		m.form.index = msg.index
+		m.form.col = msg.column
+		// need to trigger what used to happen when a Form was received as msg.
+	}
+
+	if m.modifying {
+		m.form, cmd = m.form.Update(msg)
+		return m, cmd
+	}
+	m.board, cmd = m.board.Update(msg)
+	return m, cmd
+}
+
+func (m Model) View() string {
+	if m.modifying {
+		return m.form.View()
+	}
+	return m.board.View()
+}
+
+/* Board Stuff */
+
+type EditFormMsg struct {
+	title       string
+	description string
+	index       int
+	column      column
+}
+
+type NewFormMsg struct {
+	index  int
+	column column
+}
 
 type Board struct {
 	help     help.Model
@@ -25,22 +95,22 @@ func (m *Board) Init() tea.Cmd {
 	return nil
 }
 
-func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Board) Update(msg tea.Msg) (*Board, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		var cmd tea.Cmd
-		var cmds []tea.Cmd
 		m.help.Width = msg.Width - margin
-		for i := 0; i < len(m.cols); i++ {
-			var res tea.Model
-			res, cmd = m.cols[i].Update(msg)
-			m.cols[i] = res.(column)
+		for i := range m.cols {
+			m.cols[i], cmd = m.cols[i].Update(msg)
 			cmds = append(cmds, cmd)
 		}
 		m.loaded = true
 		return m, tea.Batch(cmds...)
-	case Form:
-		return m, m.cols[m.focused].Set(msg.index, msg.CreateTask())
+	case ReturnBoardMsg:
+		if !msg.abort {
+			return m, m.cols[m.focused].Set(msg.form.index, msg.form.CreateTask())
+		}
 	case moveMsg:
 		return m, m.cols[m.focused.getNext()].Set(APPEND, msg.Task)
 	case tea.KeyMsg:
@@ -58,12 +128,7 @@ func (m *Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cols[m.focused].Focus()
 		}
 	}
-	res, cmd := m.cols[m.focused].Update(msg)
-	if _, ok := res.(column); ok {
-		m.cols[m.focused] = res.(column)
-	} else {
-		return res, cmd
-	}
+	m.cols[m.focused], cmd = m.cols[m.focused].Update(msg)
 	return m, cmd
 }
 

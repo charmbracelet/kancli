@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/bubbles/v2/key"
+	"github.com/charmbracelet/bubbles/v2/list"
+	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
 )
 
 const APPEND = -1
@@ -45,7 +45,7 @@ func (c column) Init() tea.Cmd {
 }
 
 // Update handles all the I/O for columns.
-func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (c column) Update(msg tea.Msg) (column, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -56,16 +56,24 @@ func (c column) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Edit):
 			if len(c.list.VisibleItems()) != 0 {
 				task := c.list.SelectedItem().(Task)
-				f := NewForm(task.title, task.description)
-				f.index = c.list.Index()
-				f.col = c
-				return f.Update(nil)
+				//				return f.Update(nil)
+				//
+				return c, func() tea.Msg {
+					return EditFormMsg{
+						title:       task.title,
+						description: task.description,
+						index:       c.list.Index(),
+						column:      c,
+					}
+				}
 			}
 		case key.Matches(msg, keys.New):
-			f := newDefaultForm()
-			f.index = APPEND
-			f.col = c
-			return f.Update(nil)
+			return c, func() tea.Msg {
+				return NewFormMsg{
+					index:  c.list.Index(),
+					column: c,
+				}
+			}
 		case key.Matches(msg, keys.Delete):
 			return c, c.DeleteCurrent()
 		case key.Matches(msg, keys.Enter):

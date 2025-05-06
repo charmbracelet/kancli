@@ -1,13 +1,18 @@
 package main
 
 import (
-	"github.com/charmbracelet/bubbles/help"
-	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/textarea"
-	"github.com/charmbracelet/bubbles/textinput"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/bubbles/v2/help"
+	"github.com/charmbracelet/bubbles/v2/key"
+	"github.com/charmbracelet/bubbles/v2/textarea"
+	"github.com/charmbracelet/bubbles/v2/textinput"
+	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
 )
+
+type ReturnBoardMsg struct {
+	abort bool
+	form  Form
+}
 
 type Form struct {
 	help        help.Model
@@ -17,11 +22,11 @@ type Form struct {
 	index       int
 }
 
-func newDefaultForm() *Form {
+func newDefaultForm() Form {
 	return NewForm("task name", "")
 }
 
-func NewForm(title, description string) *Form {
+func NewForm(title, description string) Form {
 	form := Form{
 		help:        help.New(),
 		title:       textinput.New(),
@@ -30,18 +35,14 @@ func NewForm(title, description string) *Form {
 	form.title.Placeholder = title
 	form.description.Placeholder = description
 	form.title.Focus()
-	return &form
+	return form
 }
 
 func (f Form) CreateTask() Task {
 	return Task{f.col.status, f.title.Value(), f.description.Value()}
 }
 
-func (f Form) Init() tea.Cmd {
-	return nil
-}
-
-func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (f Form) Update(msg tea.Msg) (Form, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case column:
@@ -53,7 +54,7 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return f, tea.Quit
 
 		case key.Matches(msg, keys.Back):
-			return board.Update(nil)
+			return f, func() tea.Msg { return ReturnBoardMsg{true, f} }
 		case key.Matches(msg, keys.Enter):
 			if f.title.Focused() {
 				f.title.Blur()
@@ -61,7 +62,7 @@ func (f Form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return f, textarea.Blink
 			}
 			// Return the completed form as a message.
-			return board.Update(f)
+			return f, func() tea.Msg { return ReturnBoardMsg{false, f} }
 		}
 	}
 	if f.title.Focused() {

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/charmbracelet/bubbles/key"
+import "github.com/charmbracelet/bubbles/v2/key"
 
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
 // of the key.Map interface.
