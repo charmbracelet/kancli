@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	NucleusDirName  = ".kancli-nucleus" // dotfile style for home dir
+	NucleusDirName  = ".kancli-nucleus"
 	NucleusFileName = "kancli.json"
 )
 
@@ -40,8 +40,6 @@ func Init() {
 			fmt.Println("❌ Failed to create default config:", err)
 			os.Exit(1)
 		}
-	} else {
-		loadExistingConfig()
 	}
 }
 
@@ -59,7 +57,6 @@ func GetConfigDir() string {
 type KancliConfig struct {
 	Version string `json:"version"`
 	User    string `json:"user"`
-	// Add more config fields as needed
 }
 
 func createDefaultConfig() error {
@@ -86,7 +83,3 @@ func createDefaultConfig() error {
 	return nil
 }
 
-func loadExistingConfig() {
-	// Placeholder: implement loading logic here if needed
-	fmt.Println("🔁 Loading existing config from", ConfigPath)
-}
