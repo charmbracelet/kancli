@@ -5,7 +5,6 @@ import (
 )
 
 // TODOs
-// - clean up textinput & area placeholder text (form could use some razzle dazzle) - use huh for this instead?
 // - get accurate help menu options (not showing options properly)
 
 type Model struct {
@@ -41,7 +40,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.form = NewForm(msg.title, msg.description)
 		m.form.index = msg.index
 		m.form.col = msg.column
-		// need to trigger what used to happen when a Form was received as msg.
 	}
 
 	if m.modifying {
