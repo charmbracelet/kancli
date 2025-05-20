@@ -7,6 +7,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
 
+const defaultWidth int = 80
+
 type status int
 
 func (s status) getNext() status {

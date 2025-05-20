@@ -32,6 +32,8 @@ func NewForm(title, description string) Form {
 		title:       textinput.New(),
 		description: textarea.New(),
 	}
+	form.title.SetWidth(defaultWidth)
+	form.description.SetWidth(defaultWidth)
 	form.title.Placeholder = title
 	form.description.Placeholder = description
 	form.title.Focus()
