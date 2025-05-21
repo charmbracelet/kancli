@@ -16,7 +16,7 @@ We'd love to hear your thoughts on this tutorial. Feel free to drop us a note!
 
 ## License
 
-[MIT](https://raw.githubusercontent.com/charmbracelet/bubbletea/main/LICENSE)
+[MIT](https://github.com/charmbracelet/bubbletea/raw/main/LICENSE)
 
 ***
 
