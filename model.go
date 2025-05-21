@@ -4,9 +4,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
 
-// TODOs
-// - get accurate help menu options (not showing options properly)
-
 type Model struct {
 	// false is board, true is form
 	modifying bool
