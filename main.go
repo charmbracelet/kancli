@@ -5,6 +5,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/kancli/nucleus"
 )
 
 type status int
@@ -34,6 +35,9 @@ const (
 )
 
 func main() {
+	//Create the kancli nuclues
+	nucleus.Init()
+	
 	f, err := tea.LogToFile("debug.log", "debug")
 	if err != nil {
 		fmt.Println(err)
