@@ -1,10 +1,10 @@
 package main
 
-import "github.com/charmbracelet/bubbles/list"
+import "github.com/charmbracelet/bubbles/v2/list"
 
 // Provides the mock data to fill the kanban board
 
-func (b *Board) initLists() {
+func (b *Board) initLists() *Board {
 	b.cols = []column{
 		newColumn(todo),
 		newColumn(inProgress),
@@ -27,4 +27,5 @@ func (b *Board) initLists() {
 	b.cols[done].list.SetItems([]list.Item{
 		Task{status: done, title: "stay cool", description: "as a cucumber"},
 	})
+	return b
 }

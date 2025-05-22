@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "github.com/charmbracelet/bubbletea/v2"
 )
+
+const defaultWidth int = 80
 
 type status int
 
@@ -41,9 +43,7 @@ func main() {
 	}
 	defer f.Close()
 
-	board = NewBoard()
-	board.initLists()
-	p := tea.NewProgram(board)
+	p := tea.NewProgram(newModel())
 	if _, err := p.Run(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
