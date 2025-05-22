@@ -23,9 +23,25 @@ func (s status) getPrev() status {
 	return s - 1
 }
 
+func (s status) String() string {
+	switch s {
+	case todo:
+		return "todo"
+	case inProgress:
+		return "inProgress"
+	case done:
+		return "done"
+	default:
+		return "unknown"
+	}
+}
+
 const margin = 4
 
-var board *Board
+var (
+	board   *Board
+	csvFile string
+)
 
 const (
 	todo status = iota
@@ -40,6 +56,13 @@ func main() {
 		os.Exit(1)
 	}
 	defer f.Close()
+
+	config := readConfig()
+	if config.DbPath == "" {
+		fmt.Println("No dbPath found in config")
+		os.Exit(1)
+	}
+	csvFile = config.DbPath
 
 	board = NewBoard()
 	board.initLists()
